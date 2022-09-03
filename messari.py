@@ -35,7 +35,7 @@ class Messari():
 
         for i in response['data']:
 
-            assets[i['symbol']] = i
+            assets[i['slug']] = i
 
         return assets
 
@@ -122,13 +122,29 @@ class Messari():
 
     #### Date Format YY-mm-dd
 
-    def getAssetsByTime(self, version,  asset, wich_metric, indicator, startDate, endDate, interval ):
+    def getAssetsByTime(self, version,  asset, wich_metric, indicator, startDate, endDate, interval):
 
-        dt = datetime(2015, 10, 19,0,0,3,332).strftime('%Y-%m-%dT%H:%M:%S.%f')[0:-3]+'Z'
+        startDay = datetime.strptime(startDate, "%Y-%m-%d").day
 
-        print(dt)
+        startMonth = datetime.strptime(startDate, "%Y-%m-%d").month
+
+        startYear = datetime.strptime(startDate, "%Y-%m-%d").year
+
+
+        endDay = datetime.strptime(endDate, "%Y-%m-%d").day
+
+        endMonth = datetime.strptime(endDate, "%Y-%m-%d").month
+
+        endYear = datetime.strptime(endDate, "%Y-%m-%d").year
+
+        ##### preencher ocm 21 horas no primeiro zero
+
+        startDt = datetime(startYear, startMonth, startDay ,0,0,0,0).strftime('%Y-%m-%dT%H:%M:%S.%f')[0:-3]+'Z'
+
+        endDt = datetime(endYear, endMonth, endDay ,0,0,0,0).strftime('%Y-%m-%dT%H:%M:%S.%f')[0:-3]+'Z'
+
         
-        path = version + "/assets/" + asset + "/" + wich_metric + "/" + indicator + "/time-series" +"?start=" + "2022-08-30" + "&end=" + "2022-08-31" + "&interval="+ interval
+        path = version + "/assets/" + asset + "/" + wich_metric + "/" + indicator + "/time-series" +"?start=" + startDt + "&end=" + endDt + "&interval="+ interval
 
         response = self.__sendRequest(path).json()
 
@@ -136,30 +152,79 @@ class Messari():
 
  
 
+    def marketCap(self, version, limit):
+
+        marketCapData = self.getMarketCap(version,limit)
+
+        result = {}
+
+        for i in marketCapData:
+
+            result[i] = marketCapData[i]['current_marketcap_usd']
+
+        return result
+
+
+
+
+def priceChgWeek(limit, startDate, endDate):
+
+    assets = messari.getAssets("v2",limit)
+
+
+    result = {}
+
+    for i in assets:
+
+        assetByTime = messari.getAssetsByTime('v1', i,'metrics', 'price', startDate, endDate, '1d' )
+
+
+        if assetByTime['data'] == None:
+
+            result[i] = "No Data"
+
+        else:
+
+            result[i] = 100*(assetByTime['data']['values'][len(assetByTime['data']['values'])-1][4] - assetByTime['data']['values'][0][1])/assetByTime['data']['values'][0][1]
+
+    return result
+    
+
+###### Essa função mostra a viração percentual de 0 hora de hoje até 0 hora do primeiro dia do mês
+
+def chgMonthToDate(limit):
+
+    today = datetime.today()
+
+    firstDay = datetime(today.year, today.month, 1).strftime('%Y-%m-%d')
+
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    response = priceChgWeek(limit, firstDay, today)
+
+    print(" Data range: " + 'From: ' + firstDay + " To " + today)
+
+    return response
+
+
+
+
+
+
 messari = Messari(API_KEY)
 
-
-assetsData = messari.getAssetsData("v2",20 )
-
-assets = messari.getAssets("v2",20)
-
-marketcap = messari.getMarketCap("v2", 20)
-
-marketData = messari.getMarketData("v2", 20)
-
-assetByTime = messari.getAssetsByTime('v1', 'bitcoin','metrics', 'price', startDate, endDate, '1d' )
+#print(messari.getAssetsByTime('v1', 'polkadot','metrics', 'price', '2022-08-31', '2022-09-03', '1d' ))
 
 
-#print(assetsData)
+##### limit é a quantidade de moedas que queremos
 
-#print(messari.getAssetsByTime("v1"))
+print(messari.marketCap('v2', 10))
+
+print(chgMonthToDate(10))
 
 
 
 
-
-
-#print(messari.getMarketData('v2', 20))
 
 
 
