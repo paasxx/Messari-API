@@ -6,6 +6,8 @@ import datetime
 from datetime import timezone, datetime
 import requests
 import json
+import pandas as pd
+import matplotlib.pyplot as plot
 
 API_KEY = '114a9365-dbc2-4336-b212-aa7919f56483'
 
@@ -213,17 +215,23 @@ def chgMonthToDate(limit):
 
 messari = Messari(API_KEY)
 
-#print(messari.getAssetsByTime('v1', 'polkadot','metrics', 'price', '2022-08-31', '2022-09-03', '1d' ))
+
+mktCapData=messari.marketCap('v2', 10)
+
+mktCapData_dt = {'Cripto': mktCapData.keys(), 'Market Cap': mktCapData.values()}
 
 
-##### limit é a quantidade de moedas que queremos
-
-print(messari.marketCap('v2', 10))
-
-print(chgMonthToDate(10))
+#chgMonthToDateData=chgMonthToDate(10)
 
 
 
+mktCap = pd.DataFrame(mktCapData_dt)
+
+print(mktCap)
+
+mktCap.plot.barh(x='Cripto', y='Market Cap', title="Market Capitalization")
+
+plot.show(block=True)
 
 
 
