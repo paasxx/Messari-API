@@ -220,18 +220,25 @@ mktCapData=messari.marketCap('v2', 10)
 
 mktCapData_dt = {'Cripto': mktCapData.keys(), 'Market Cap': mktCapData.values()}
 
-
-#chgMonthToDateData=chgMonthToDate(10)
-
-
-
 mktCap = pd.DataFrame(mktCapData_dt)
 
-print(mktCap)
 
-mktCap.plot.barh(x='Cripto', y='Market Cap', title="Market Capitalization")
+mktCap.plot.bar(x='Cripto', y='Market Cap', title="Market Capitalization")
 
 plot.show(block=True)
+
+
+chgMonthToDateData=chgMonthToDate(10)
+
+chgMonthToDateData_dt = {'Cripto': chgMonthToDateData.keys(), 'chgMontToDate': chgMonthToDateData.values()}
+
+chgMTD = pd.DataFrame(chgMonthToDateData_dt)
+
+chgMTD.plot.barh(x='Cripto', y='chgMontToDate', title="Change Month To Date")
+
+plot.show(block=True)
+
+
 
 
 
